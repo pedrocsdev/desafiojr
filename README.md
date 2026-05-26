@@ -37,7 +37,7 @@ npx prisma migrate dev
 npm run start:dev
 ```
 
-API disponível em `http://localhost:3000`.
+API disponível em `http://localhost:3001`.
 
 Endpoints:
 
@@ -58,7 +58,7 @@ npm install
 npm run dev
 ```
 
-Interface em `http://localhost:3001`.
+Interface em `http://localhost:3000`.
 
 ## Variáveis de ambiente
 
