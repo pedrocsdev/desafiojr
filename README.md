@@ -1,113 +1,51 @@
-# Desafio Técnico Fullstack JR — CRUD de Clientes
+## Solução
 
-Repositório do desafio técnico para avaliação de desenvolvimento fullstack (NestJS + Next.js + PostgreSQL).
+Implementação completa do CRUD de clientes, cobrindo backend (NestJS) e frontend (Next.js).
 
-## Estrutura do repositório
+### Backend
+- Implementados os 5 métodos do `clients.service.ts`:
+  - `create`: valida unicidade de email e documento antes de criar
+  - `findAll`: delega filtros e paginação ao repository
+  - `findOne`: retorna 404 se o cliente não existir
+  - `update`: bloqueia edição de clientes inativos (403), valida unicidade de email/documento na alteração
+  - `remove`: soft delete (altera status para INACTIVE, sem apagar o registro)
 
-```
-/backend   → API REST (NestJS + Prisma)
-/frontend  → Interface web (Next.js)
-arquitetura.md → Checklist e guia de camadas
-```
+### Frontend
+- 3 rotas implementadas: `/clients` (listagem), `/clients/new` (cadastro), `/clients/[id]/edit` (edição)
+- Componentes: `AppHeader`, `StatusBadge`, `ClientFilters`, `ClientTable`, `ConfirmDeleteDialog`, `ClientForm`
+- Hooks customizados: `useClients` (listagem, filtros, exclusão) e `useClientForm` (validação, criação/edição)
+- Camada de API (`lib/api.ts`) com tratamento de erros retornados pelo backend
 
 ## Tecnologias
 
-| Camada    | Stack                          |
-|-----------|--------------------------------|
-| Backend   | NestJS, Prisma, PostgreSQL     |
-| Frontend  | Next.js 16, React 19, Tailwind |
-| Banco     | PostgreSQL                     |
+- **Backend:** NestJS, Prisma, PostgreSQL, TypeScript
+- **Frontend:** Next.js (App Router), React, TypeScript, Tailwind CSS
 
-## Pré-requisitos
+## Decisões técnicas
 
-- Node.js 20+
-- PostgreSQL (local ou Prisma Postgres / Docker)
-- npm
+- **Arquitetura em camadas:** Controller → Service → Repository no backend; Página → Hook → API no frontend, separando responsabilidades e facilitando manutenção/testes.
+- **Soft delete:** exclusão de cliente não remove o registro do banco, apenas altera o status para `INACTIVE`, preservando histórico.
+- **Validação de duplicidade no update:** ao editar, a checagem de e-mail/documento único ignora o próprio registro (compara `id` do encontrado com o `id` sendo editado), evitando falso positivo quando o campo não é alterado.
+- **Tratamento de erros:** o cliente HTTP do frontend captura as mensagens específicas retornadas pelo NestJS (`ConflictException`, `NotFoundException`, `ForbiddenException`) e as exibe na interface.
 
-## Como rodar o projeto
+## Como executar
 
-### 1. Backend
-
-```bash
+### Backend
+\`\`\`bash
 cd backend
-cp .env.example .env
-# Edite DATABASE_URL no .env
 npm install
+cp .env.example .env   # ajustar DATABASE_URL com as credenciais do seu PostgreSQL
+npx prisma generate
 npx prisma migrate dev
 npm run start:dev
-```
+\`\`\`
 
-API disponível em `http://localhost:3001`.
-
-Endpoints:
-
-| Método | Rota              | Descrição              |
-|--------|-------------------|------------------------|
-| POST   | `/clients`        | Criar cliente          |
-| GET    | `/clients`        | Listar (filtros/página)|
-| GET    | `/clients/:id`    | Buscar por ID          |
-| PUT    | `/clients/:id`    | Atualizar              |
-| DELETE | `/clients/:id`    | Exclusão lógica        |
-
-### 2. Frontend
-
-```bash
+### Frontend
+\`\`\`bash
 cd frontend
-cp .env.example .env.local
 npm install
+# criar .env.local com NEXT_PUBLIC_API_URL=http://localhost:3001
 npm run dev
-```
+\`\`\`
 
-Interface em `http://localhost:3000`.
-
-## Variáveis de ambiente
-
-Copie os exemplos e ajuste conforme seu ambiente:
-
-| Arquivo              | Variáveis principais                          |
-|----------------------|-----------------------------------------------|
-| `backend/.env.example` | `DATABASE_URL`, `PORT`, `CORS_ORIGIN`       |
-| `frontend/.env.example` | `NEXT_PUBLIC_API_URL`                      |
-
-## O que o candidato deve implementar
-
-### Backend (`backend/src/modules/clients/clients.service.ts`)
-
-- [ ] `create` — email e documento únicos
-- [ ] `findAll` — listagem com filtros e paginação
-- [ ] `findOne` — busca por ID
-- [ ] `update` — bloquear edição se INACTIVE
-- [ ] `remove` — soft delete (status INACTIVE)
-
-O **repository**, **controller**, **DTOs** e **schema Prisma** já estão prontos.
-
-### Frontend (candidato implementa tudo)
-
-- [ ] Rotas: `/clients`, `/clients/new`, `/clients/[id]/edit`
-- [ ] Componentes, hooks, `lib/api.ts`, validações e UX
-
-Apenas o Next.js base e exemplos de arquitetura em `frontend/examples/` estão prontos.
-
-Consulte o checklist em [arquitetura.md](./arquitetura.md).
-
-## Regras de negócio
-
-1. **Email único** — retornar `409 Conflict` se duplicado
-2. **Documento único** — retornar `409 Conflict` se duplicado
-3. **Cliente inativo não pode ser editado** — retornar `403 Forbidden`
-4. **Exclusão lógica** — `DELETE` altera status para `INACTIVE` (não remove do banco)
-
-## Entrega (candidato)
-
-1. Fork deste repositório
-2. Branch: `feature/seu-nome`
-3. Commits organizados
-4. Pull Request com: solução, tecnologias, decisões técnicas e como executar
-
-## O que será avaliado
-
-- Organização e camadas corretas
-- Modelagem e regras de negócio no backend
-- Componentização e integração com API no frontend
-- UX: loading, feedback de erro/sucesso
-- README e clareza do código
+Acessar `http://localhost:3000/clients`.
